@@ -1,12 +1,13 @@
-Peer Assignment 1 - Analysis
-========================================================
+Reproducible Research PA1
+=========================
 
+Please set your working directory so that it includes the activity.csv data
 
-### Loading and preprocessing the data
-To run the analysis for this project, the first step is to read the file activity.csv originaly avaluable in this [link](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip). This version of the data was downloaded in 06 16 2014. The code used to read the data is:
+## Reading and Processing the Data
 
 ```r
-data = read.csv("activity.csv")
+#Loading and processing Data
+activity <- read.csv("activity.csv")
 ```
 
 ```
@@ -17,56 +18,48 @@ data = read.csv("activity.csv")
 ## Error: cannot open the connection
 ```
 
-The raw data has the following structure:
+```r
+activity$date <- as.Date(activity$date, format = "%Y-%m-%d")
+
+#Create a dataframe with no NA values called activity1
+activity1 <- activity[complete.cases(activity),]
+row.names(activity1) <- NULL 
+```
+
+Our data has the following structure:
 
 ```r
-str(data)
+str(activity1)
 ```
 
 ```
-## 'data.frame':	17568 obs. of  3 variables:
-##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
-##  $ date    : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 1 1 1 1 1 1 1 1 1 1 ...
+## 'data.frame':	15264 obs. of  3 variables:
+##  $ steps   : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ date    : Date, format: "2012-10-02" "2012-10-02" ...
 ##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
 ```
 
-I'm a Portuguese native speaker, so the dates language configuration has to be changed to english. The code below does that, as well as the transformations needed to the analysis
+## What is mean total number of steps taken per day?
 
-
-```r
-Sys.setlocale("LC_TIME", "English")
-```
-
-```
-## Warning: OS reports request to set locale to "English" cannot be honored
-```
-
-```
-## [1] ""
-```
+First we aggregate the number of steps in each day
 
 ```r
-day = strptime(as.character(data[,2]), "%Y-%m-%d")
-wday = weekdays(day)
-steps = data[,1]
-interval = data[,3]
-tidy = data.frame(day, wday, steps, interval)
+agg <- aggregate(activity1$steps, by = list(activity1$date), sum)
+colnames(agg) <- c("date","steps")
 ```
 
-### What is mean total number of steps taken per day?
-
-Now we are ready to study the data. The first thing is to find total number of steps taken per day
+### Make a histogram of the total number of steps taken each day
 
 ```r
-step.day = aggregate(tidy$steps ~ day, data=tidy, FUN=sum)[,1:2]
-hist(step.day[,2], xlim=c(0,25000), xlab = "Number of steps", main = 
-       "Number of steps taken in a day", col = "grey")
+hist(agg$steps, xlab = "Sum of Steps per Day", main = "Total Number of Steps taken each Day", col = "red")
 ```
 
-![plot of chunk mean](figure/mean.png) 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
+
+### Calculate and report the mean and median total number of steps taken per day
 
 ```r
-mean(step.day[,2])
+mean(agg$steps, na.rm = T) 
 ```
 
 ```
@@ -74,126 +67,162 @@ mean(step.day[,2])
 ```
 
 ```r
-median(step.day[,2])
+median(agg$steps, na.rm = T) 
 ```
 
 ```
 ## [1] 10765
 ```
 
-### What is the average daily activity pattern?
+## What is the average daily activity pattern?
 
-To understand daily activity pattern we can use the following code:
+First I sort by interval and create a data frame of the 5-minute interval  and the average number of steps taken, averaged across all days
+
 
 ```r
-step.interval = aggregate(tidy$steps ~ interval, data=tidy, FUN=mean)
-names(step.interval) = c("intervals", "steps")
-plot(step.interval$interval, step.interval$steps, type="l", xlab="Interval", ylab="Steps", main = "Mean number of steps by interval")
+activity1$interval <- sort(activity1$interval)
+aggStep = aggregate(steps ~ interval, data=activity, FUN=mean)
 ```
 
-![plot of chunk daily pattern](figure/daily pattern.png) 
+Then I make the relevant plot
 
 ```r
-max.steps = max(step.interval$steps)
-int.max.steps = step.interval$interval[which.max(step.interval$steps)]
-max.steps
+plot(aggStep, type = "l", main = "Mean number of steps by interval")
+```
+
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 
+
+### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+The maximum step taken is
+
+```r
+maxstep<- max(aggStep$steps,na.rm=T) 
+maxstep
 ```
 
 ```
 ## [1] 206.2
 ```
-The time series plot shows that the mean number of steps taken in the intervals of 750 and 1000 minutes are very high. In particular at the interval of 835 we can see that we have a mean of 206.1698 steps.
-
-### Imputing missing values
-
-Now we should understand the missing data. To count how many missing counts of steps we have, we can do the following.
+which belongs to this interval
 
 ```r
-missings = is.na(steps)
-sum(missings)
+aggStep$interval[which(aggStep$step == maxstep)] 
+```
+
+```
+## [1] 835
+```
+
+## Imputting the Missing Values
+
+Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
+```r
+sum(is.na(activity))
 ```
 
 ```
 ## [1] 2304
 ```
-So, we know that 2304 of the 17568 registers have missing data. Now we have to imput the missing values. For each missing number of steps we use the mean number of steps for the respective interval
+### Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
 
 ```r
-NewData = tidy
-for(i in 1:dim(NewData)[1]){
-        if(is.na(NewData$steps[i])){
-                for(j in 1:dim(step.interval)[1]){
-                      if(NewData$interval[i]==step.interval[j,1]){
-                              NewData$steps[i]=step.interval[j,2]
-                        }
-                }
+noNactivity <- activity
+noNactivity$completeSteps <- noNactivity$steps # Creating column for the imputed values
+```
+
+Imputing the missing values by using the mean of the 5-minute interval
+
+```r
+for (i in 1 : length(noNactivity[,4])){   
+                if (is.na(noNactivity$completeSteps[i])){
+                                noNactivity$completeSteps[i] <- aggStep$Steps[which(aggStep$Interval == noNactivity$interval[i])]                                               
         }
 }
 ```
 
-Now with a new data set with no missing values, we can analyse agains the histogram.
+```
+## Error: replacement has length zero
+```
+
+### Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
 ```r
-n.step.day = aggregate(NewData$steps ~ day, data=NewData, FUN=sum)[,1:2]
-hist(n.step.day[,2], xlim=c(0,25000), xlab = "Number of steps", main = 
-       "Number of steps taken in a day", col = "grey")
+completeActivity <- activity
+completeActivity$steps <- noNactivity$completeSteps
 ```
 
-![plot of chunk mean no missing](figure/mean no missing.png) 
-
-```r
-mean(n.step.day[,2])
-```
-
-```
-## [1] 10766
-```
-
-```r
-median(n.step.day[,2])
-```
-
-```
-## [1] 10766
-```
-
-
-We can see that there is no significative change in the histogram and the mean and median have minor changes.
-
-### Are there differences in activity patterns between weekdays and weekends?
- 
- The first thig we will have to do is to create a new column that indicates if it is a weekday or weekend. We can do that with this code.
- 
+### Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
 
 ```r
-kday = wday
-for(i in 1:length(wday)){
-        if(wday[i] %in% c("Saturday", "Sunday")){
-               kday[i] = "weekend"
-        }
-        else{kday[i] = "weekday"}
-}
-NewData = cbind(NewData,kday)
-step.interval.day = aggregate(NewData$steps ~ NewData$interval+NewData$kday, data=NewData, FUN=mean)
-names(step.interval.day) = c("interval","kday","steps")
-View(step.interval.day)
-View(NewData)
+completeAgg<- aggregate(completeActivity$steps, by = list(completeActivity$date), sum)
+colnames(completeAgg) <- c("date","steps")
+```
+### Histogram
+
+```r
+hist(completeAgg$steps, xlab = "Sum of Steps per Day", main = "Total Number of Steps taken each Day", col = "green")
 ```
 
-To make this graph, we will use the lattice library, this code loads the library and makes the graph
+![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14.png) 
+
+### Calculate and report the mean and median total number of steps taken per day for completeAgg
+
+```r
+mean(completeAgg$steps) #mean
+```
+
+```
+## [1] NA
+```
+
+```r
+median(completeAgg$steps) #median
+```
+
+```
+## [1] NA
+```
+
+The impact is mainly that the mean approaches the median
+
+### Create a column indicating the day of the week
+
+
+```r
+completeActivity$day <- weekdays(completeActivity$date)
+completeActivity$day[which(completeActivity$day != "Saturday" &  completeActivity$day != "Sunday")] <- "Weekday" 
+completeActivity$day[which(completeActivity$day == "Saturday" |  completeActivity$day == "Sunday")] <- "Weekend" 
+completeActivity$day <- as.factor(completeActivity$day)
+```
+
+## Create a a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis)
+
+First I aggregate the data
+
+
+```r
+aggdat = aggregate(completeActivity$steps ~ completeActivity$interval+completeActivity$day, data=completeActivity, FUN=mean)
+colnames(aggdat) <- c("interval","day","steps")
+```
+
+And then I constract the plot with the lattice package
+
 
 ```r
 library(lattice)
-xyplot(steps ~ interval| kday, 
-        data = step.interval.day,
-        type = "l",
-        main="Number of steps per period",
-        xlab="Period", 
-        layout=c(1,2)
-   )
+xyplot(steps ~ interval| day, 
+       data = aggdat,
+       type = "l",
+       main="Number of steps per period",
+       xlab="Period", 
+       layout=c(1,2)
+)
 ```
 
-![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
+![plot of chunk unnamed-chunk-18](figure/unnamed-chunk-18.png) 
+
+
 
