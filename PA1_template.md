@@ -8,17 +8,6 @@ Please set your working directory so that it includes the activity.csv data
 ```r
 #Loading and processing Data
 activity <- read.csv("activity.csv")
-```
-
-```
-## Warning: cannot open file 'activity.csv': No such file or directory
-```
-
-```
-## Error: cannot open the connection
-```
-
-```r
 activity$date <- as.Date(activity$date, format = "%Y-%m-%d")
 
 #Create a dataframe with no NA values called activity1
@@ -225,5 +214,6 @@ xyplot(steps ~ interval| day,
 ![plot of chunk unnamed-chunk-18](figure/unnamed-chunk-18.png) 
 
 
+knit2html("PA1_template.Rmd")
 
 

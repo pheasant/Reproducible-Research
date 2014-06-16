@@ -143,5 +143,6 @@ xyplot(steps ~ interval| day,
 ```
 
 
+knit2html("PA1_template.Rmd")
 
 
