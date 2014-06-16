@@ -80,9 +80,10 @@ Imputing the missing values by using the mean of the 5-minute interval
 ```{r}
 for (i in 1 : length(noNactivity[,4])){   
                 if (is.na(noNactivity$completeSteps[i])){
-                                noNactivity$completeSteps[i] <- aggStep$Steps[which(aggStep$Interval == noNactivity$interval[i])]                                               
+                                noNactivity$completeSteps[i] <- aggStep$steps[which(aggStep$interval == noNactivity$interval[i])]                                               
         }
 }
+
 ```
 
 ### Create a new dataset that is equal to the original dataset but with the missing data filled in.
@@ -143,6 +144,7 @@ xyplot(steps ~ interval| day,
 ```
 
 
-knit2html("PA1_template.Rmd")
+ 
+ 
 
 

@@ -126,13 +126,9 @@ Imputing the missing values by using the mean of the 5-minute interval
 ```r
 for (i in 1 : length(noNactivity[,4])){   
                 if (is.na(noNactivity$completeSteps[i])){
-                                noNactivity$completeSteps[i] <- aggStep$Steps[which(aggStep$Interval == noNactivity$interval[i])]                                               
+                                noNactivity$completeSteps[i] <- aggStep$steps[which(aggStep$interval == noNactivity$interval[i])]                                               
         }
 }
-```
-
-```
-## Error: replacement has length zero
 ```
 
 ### Create a new dataset that is equal to the original dataset but with the missing data filled in.
@@ -172,7 +168,7 @@ median(completeAgg$steps, na.rm = T) #median
 ```
 
 ```
-## [1] 10765
+## [1] 10766
 ```
 
 The impact is mainly that the mean approaches the median
@@ -214,6 +210,7 @@ xyplot(steps ~ interval| day,
 ![plot of chunk unnamed-chunk-18](figure/unnamed-chunk-18.png) 
 
 
-knit2html("PA1_template.Rmd")
+ 
+ 
 
 
