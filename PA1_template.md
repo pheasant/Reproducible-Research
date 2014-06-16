@@ -209,7 +209,7 @@ xyplot(steps ~ interval| day,
 
 ![plot of chunk unnamed-chunk-18](figure/unnamed-chunk-18.png) 
 
-
+knit2html("PA1_template.Rmd")
  
  
 
