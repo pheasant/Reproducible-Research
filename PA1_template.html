@@ -336,16 +336,16 @@ colnames(completeAgg) &lt;- c(&quot;date&quot;,&quot;steps&quot;)
 
 <h3>Calculate and report the mean and median total number of steps taken per day for completeAgg</h3>
 
-<pre><code class="r">mean(completeAgg$steps) #mean
+<pre><code class="r">mean(completeAgg$steps, na.rm = T) #mean
 </code></pre>
 
-<pre><code>## [1] NA
+<pre><code>## [1] 10766
 </code></pre>
 
-<pre><code class="r">median(completeAgg$steps) #median
+<pre><code class="r">median(completeAgg$steps, na.rm = T) #median
 </code></pre>
 
-<pre><code>## [1] NA
+<pre><code>## [1] 10765
 </code></pre>
 
 <p>The impact is mainly that the mean approaches the median</p>

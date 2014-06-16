@@ -104,8 +104,8 @@ hist(completeAgg$steps, xlab = "Sum of Steps per Day", main = "Total Number of S
 
 ### Calculate and report the mean and median total number of steps taken per day for completeAgg
 ```{r}
-mean(completeAgg$steps) #mean
-median(completeAgg$steps) #median
+mean(completeAgg$steps, na.rm = T) #mean
+median(completeAgg$steps, na.rm = T) #median
 ```
 
 The impact is mainly that the mean approaches the median
@@ -141,6 +141,7 @@ xyplot(steps ~ interval| day,
        layout=c(1,2)
 )
 ```
+
 
 
 
